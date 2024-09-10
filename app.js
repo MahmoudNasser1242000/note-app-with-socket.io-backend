@@ -32,4 +32,11 @@ io.on('connection', (socket) => {
         const notes = await noteModel.find({});
         socket.emit("display-notes", notes)
     })
+
+    socket.on("delete-note", async (id) => {
+        const note = await noteModel.deleteOne({_id: id});
+
+        const notes = await noteModel.find({});
+        socket.emit("display-notes", notes)
+    })
 });
