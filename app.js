@@ -9,7 +9,7 @@ app.use(json())
 
 dbConnection()
 
-app.get('/', (req, res) => res.status(200).json({msg: 'Hello World!'}))
+app.get('/', (req, res) => res.status(200).json({ msg: 'Hello World!' }))
 const server = app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 
 const io = new Server(server, {
@@ -27,14 +27,22 @@ io.on('connection', (socket) => {
     })
 
     socket.on("add-note", async (note_data) => {
-        const note = await noteModel.insertMany({title: note_data.title, description: note_data.description});
-
-        const notes = await noteModel.find({});
-        socket.emit("display-notes", notes)
+        try {
+            const note = await noteModel.insertMany({ title: note_data.title, description: note_data.description });
+            const notes = await noteModel.find({});
+            socket.emit("display-notes", notes)
+        } catch (error) {
+            
+            const errValidation = {
+                title: error.errors.title?.properties.message,
+                description: error.errors.description?.properties.message
+            }
+            socket.emit("error-validation", errValidation)
+        }
     })
 
     socket.on("delete-note", async (id) => {
-        const note = await noteModel.deleteOne({_id: id});
+        const note = await noteModel.deleteOne({ _id: id });
 
         const notes = await noteModel.find({});
         socket.emit("display-notes", notes)
